@@ -1,0 +1,16 @@
+{
+    "domain": "loex_xsmart",
+    "name": "Loex Xsmart Integration",
+    "codeowners": [
+      "@AndreaTomatis"
+    ],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/AndreaTomatis/loex-xsmart-integration/",
+    "homekit": {},
+    "iot_class": "cloud_polling",
+    "requirements": [],
+    "ssdp": [],
+    "zeroconf": []
+  }
+  
