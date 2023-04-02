@@ -1,0 +1,32 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "deviceId": "Device Id",
+                    "password": "Password",
+                    "username": "Username",
+                    "plant": "Plant Name"
+                }
+            }
+        }
+    },
+    "options": {
+      "step": {
+        "user": {
+          "title": "Loex Xsmart Configuration",
+          "data": {
+            "sync_interval": "Sync Interval to Fetch Data in Seconds"
+          }
+        }
+      }
+    }
+}

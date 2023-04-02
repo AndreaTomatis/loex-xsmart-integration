@@ -19,7 +19,9 @@ PLATFORMS: list[Platform] = [Platform.CLIMATE, Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Loex Xsmart Integration from a config entry."""
 
-    hass.data.setdefault(DOMAIN, {})
+    if hass.data.get(DOMAIN) is None:
+        hass.data.setdefault(DOMAIN, {})
+
     # Create API instance
     loex = loex_api()
     # Validate the API connection (and authentication)
@@ -30,8 +32,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data["deviceId"],
         entry.data["plant"],
     )
-    # Store an API object for your platforms to access
-    # hass.data[DOMAIN][entry.entry_id] = loex
 
     sync_interval = entry.options.get(CONF_SYNC_INTERVAL, DEFAULT_SYNC_INTERVAL)
 
@@ -41,9 +41,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
 
-    hass.data[DOMAIN] = coordinator
-
-    # await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # Store an API object for your platforms to access
+    hass.data[DOMAIN][entry.entry_id] = coordinator
 
     for platform in PLATFORMS:
         if entry.options.get(platform, True):
@@ -59,10 +58,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    # if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-    #    hass.data[DOMAIN].pop(entry.entry_id)
 
-    coordinator = hass.data[DOMAIN]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
     unloaded = all(
         await asyncio.gather(
             *[
@@ -73,7 +70,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
     )
     if unloaded:
-        hass.data[DOMAIN] = []
+        hass.data[DOMAIN].pop(entry.entry_id)
 
     return unloaded
 

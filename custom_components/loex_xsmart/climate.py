@@ -31,7 +31,7 @@ async def async_setup_entry(
 ) -> None:
     coordinator: loex_coordinator
 
-    coordinator = hass.data[DOMAIN]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
     entities = []
 

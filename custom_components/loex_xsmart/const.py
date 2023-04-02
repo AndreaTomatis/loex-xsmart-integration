@@ -12,7 +12,7 @@ DEVICE_VERSION = "2.8"
 
 CONF_SYNC_INTERVAL = "sync_interval"
 
-DEFAULT_SYNC_INTERVAL = 3  # seconds
+DEFAULT_SYNC_INTERVAL = 10  # seconds
 
 MAX_ROOMS = 38
 

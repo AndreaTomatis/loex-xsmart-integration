@@ -4,7 +4,6 @@ import logging
 
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.const import UnitOfTemperature, PERCENTAGE
 
 from .const import DOMAIN
@@ -14,12 +13,10 @@ from .coordinator import loex_coordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
-) -> None:
+async def async_setup_entry(hass, entry, async_add_entities) -> None:
     coordinator: loex_coordinator
 
-    coordinator = hass.data[DOMAIN]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
     entities = []
 
