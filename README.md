@@ -31,3 +31,11 @@ After a correct installation, your configuration directory should look like the 
     **Note**: if the custom_components directory does not exist, you need to create it.
 
 After copy-pasting the loex_xsmart directory into the custom_components folder, you need to restart HomeAssistant.
+
+# Disclaimer
+
+Author is in no way affiliated with Loex.
+
+Author does not guarantee functionality of this integration and is not responsible for any damage.
+
+All product names, trademarks and registered trademarks in this repository, are property of their respective owners.
