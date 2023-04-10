@@ -1,17 +1,15 @@
 {
-    "domain": "loex_xsmart",
-    "name": "Loex Xsmart Integration",
-    "codeowners": [
-      "@AndreaTomatis"
-    ],
-    "config_flow": true,
-    "dependencies": [],
-    "documentation": "https://github.com/AndreaTomatis/loex-xsmart-integration/",
-    "homekit": {},
-    "iot_class": "cloud_polling",
-    "requirements": [],
-    "version": "0.1.0",
-    "ssdp": [],
-    "zeroconf": []
-  }
-  
+  "domain": "loex_xsmart",
+  "name": "Loex Xsmart Integration",
+  "codeowners": [
+    "@AndreaTomatis"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/loex_xsmart",
+  "integration_type": "device",
+  "iot_class": "cloud_polling",
+  "version" : "0.0.1",
+  "ssdp": [],
+  "zeroconf": []
+}
