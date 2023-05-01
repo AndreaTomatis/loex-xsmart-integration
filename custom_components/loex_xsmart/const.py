@@ -16,6 +16,8 @@ DEFAULT_SYNC_INTERVAL = 10  # seconds
 
 MAX_ROOMS = 38
 
+CONTROL_VALUE = 20
+
 
 # HVAC LOEX MODES
 class LoexCircuitMode(StrEnum):

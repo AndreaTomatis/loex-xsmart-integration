@@ -6,7 +6,7 @@ from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature, PERCENTAGE
 
-from .const import DOMAIN
+from .const import DOMAIN, CONTROL_VALUE
 from .entity import loex_entity
 from .coordinator import loex_coordinator
 
@@ -72,10 +72,18 @@ class loex_temperature_sensor(loex_entity, SensorEntity):
         self.unit = unit
         self._icon = icon
         self._device_class = device_class
+        self.external_temp = None
 
     @property
     def state(self):
-        return self.coordinator.data["external"]["ext_temp"]
+        value = self.coordinator.data["external"]["ext_temp"]
+        if self.external_temp is None:
+            self.external_temp = value
+        else:
+            if abs(value - self.external_temp) < CONTROL_VALUE:
+                self.external_temp = value
+
+        return self.external_temp
 
     @property
     def unit_of_measurement(self):
@@ -121,10 +129,18 @@ class loex_humidity_sensor(loex_entity, SensorEntity):
         self.unit = unit
         self._icon = icon
         self._device_class = device_class
+        self.room_humidity = None
 
     @property
     def state(self):
-        return self.coordinator.data[self._room_id]["humidity"]
+        value = self.coordinator.data[self._room_id]["humidity"]
+        if self.room_humidity is None:
+            self.room_humidity = value
+        else:
+            if abs(value - self.room_humidity) < CONTROL_VALUE:
+                self.room_humidity = value
+
+        return self.room_humidity
 
     @property
     def unit_of_measurement(self):

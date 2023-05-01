@@ -20,7 +20,7 @@ from homeassistant.components.climate.const import (
     ClimateEntityFeature,
 )
 
-from .const import DOMAIN
+from .const import DOMAIN, CONTROL_VALUE
 from .coordinator import loex_coordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -76,6 +76,8 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         self._id = id
         self.description = description
         self._icon = icon
+        self.current_temperature_value = None
+        self.current_humidity_value = None
 
         self._hvac_mode = HVACMode.OFF
         self._preset_mode = PRESET_COMFORT
@@ -177,7 +179,14 @@ class loex_main_circuit(loex_entity, ClimateEntity):
 
     @property
     def current_temperature(self) -> float:
-        return self.coordinator.data["circuit"]["home_temperature"]
+        value = self.coordinator.data["circuit"]["home_temperature"]
+        if self.current_temperature_value is None:
+            self.current_temperature_value = value
+        else:
+            if abs(value - self.current_temperature_value) < CONTROL_VALUE:
+                self.current_temperature_value = value
+
+        return self.current_temperature_value
 
     @property
     def target_temperature(self) -> float:
@@ -189,7 +198,14 @@ class loex_main_circuit(loex_entity, ClimateEntity):
 
     @property
     def current_humidity(self) -> int:
-        return self.coordinator.data["circuit"]["home_humidity"]
+        value = self.coordinator.data["circuit"]["home_humidity"]
+        if self.current_humidity_value is None:
+            self.current_humidity_value = value
+        else:
+            if abs(value - self.current_humidity_value) < CONTROL_VALUE:
+                self.current_humidity_value = value
+
+        return self.current_humidity_value
 
     @property
     def preset_mode(self) -> str:
@@ -240,7 +256,8 @@ class loex_thermostat(loex_entity, ClimateEntity):
         self._id = idx
         self.description = description
         self._icon = icon
-
+        self.current_temperature_value = None
+        self.current_humidity_value = None
         self.set_target_temperature_pending = False
         self.set_target_temperature = -1
 
@@ -382,7 +399,14 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
     @property
     def current_temperature(self) -> float:
-        return self.coordinator.data[self._id]["temperature"]
+        value = self.coordinator.data[self._id]["temperature"]
+        if self.current_temperature_value is None:
+            self.current_temperature_value = value
+        else:
+            if abs(value - self.current_temperature_value) < CONTROL_VALUE:
+                self.current_temperature_value = value
+
+        return self.current_temperature_value
 
     @property
     def target_temperature(self) -> float:
@@ -400,7 +424,14 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
     @property
     def current_humidity(self) -> int:
-        return self.coordinator.data[self._id]["humidity"]
+        value = self.coordinator.data[self._id]["humidity"]
+        if self.current_humidity_value is None:
+            self.current_humidity_value = value
+        else:
+            if abs(value - self.current_humidity_value) < CONTROL_VALUE:
+                self.current_humidity_value = value
+
+        return self.current_humidity_value
 
     @property
     def temperature_unit(self) -> str:
