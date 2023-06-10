@@ -154,7 +154,7 @@ class loex_api:
 
         # ["circuit"]["state"]:
         # 0 : OFF
-        # 1 : HEAT or COOL depending on ["circuit"]["season"] ??? TODO: Check correctness
+        # 1 : HEAT or COOL depending on ["circuit"]["season"]
         # 2 : Unknwown
         # 3 : IDLE
         try:
@@ -182,7 +182,7 @@ class loex_api:
             aggregated_data["circuit"]["histeresys_humidity"] = "N/A"
 
         try:
-            if data["t" + str(10042)] == 1 and data["t" + str(10105)] == 0:
+            if data["t" + str(10042)] == 1 and data["t" + str(10043)] == 0:
                 aggregated_data["circuit"]["season"] = LoexSeason.LOEX_SUMMER
             else:
                 aggregated_data["circuit"]["season"] = LoexSeason.LOEX_WINTER
