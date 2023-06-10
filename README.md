@@ -1,3 +1,8 @@
+[![](https://img.shields.io/github/release/AndreaTomatis/loex-xsmart-integration/all.svg?style=for-the-badge)](https://github.com/AndreaTomatis/loex-xsmart-integration/releases)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![](https://img.shields.io/github/license/AndreaTomatis/loex-xsmart-integration?style=for-the-badge)](LICENSE)
+[![](https://img.shields.io/badge/MAINTAINER-%40AndreaTomatis-red?style=for-the-badge)](https://github.com/AndreaTomatis)
+
 # Loex Xsmart Integration for Home Assistant
 
 A full-featured Homeassistant component to drive Loex Xsmart Devices
