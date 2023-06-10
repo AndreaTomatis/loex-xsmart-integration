@@ -135,7 +135,11 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         elif self.coordinator.data["circuit"]["mode"] == LoexCircuitMode.LOEX_MODE_AUTO:
             return HVACMode.AUTO
         else:
-            return HVACMode.HEAT_COOL
+            season = self.coordinator.data["circuit"]["season"]
+            if season == LoexSeason.LOEX_WINTER:
+                return HVACMode.HEAT
+            elif season == LoexSeason.LOEX_SUMMER:
+                return HVACMode.COOL
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
