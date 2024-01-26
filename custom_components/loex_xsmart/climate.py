@@ -1,34 +1,31 @@
 """Climate Platform for Loex Xsmart Integration."""
 
 import logging
-from typing import Optional, Any
-
-from .entity import loex_entity
+from typing import Any, Optional
 
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature
-from homeassistant.helpers.typing import HomeAssistantType
-
-from .const import LoexCircuitMode, LoexRoomMode, LoexSeason
-
 from homeassistant.components.climate.const import (
-    PRESET_ECO,
     PRESET_COMFORT,
+    PRESET_ECO,
+    ClimateEntityFeature,
     HVACAction,
     HVACMode,
-    ClimateEntityFeature,
 )
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfTemperature
+from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, CONTROL_VALUE
+from .const import CONTROL_VALUE, DOMAIN, LoexCircuitMode, LoexRoomMode, LoexSeason
 from .coordinator import loex_coordinator
+from .entity import loex_entity
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistantType, entry: ConfigEntry, async_add_entities
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ) -> None:
+    """Add entries."""
     coordinator: loex_coordinator
 
     coordinator = hass.data[DOMAIN][entry.entry_id]
@@ -64,16 +61,19 @@ async def async_setup_entry(
 
 
 class loex_main_circuit(loex_entity, ClimateEntity):
+    """Create Main circuit."""
+
     def __init__(
         self,
         coordinator: loex_coordinator,
         entry: ConfigEntry,
-        id: str,
+        idx: str,
         description: str,
         icon: str,
     ) -> None:
+        """Initialize."""
         super().__init__(coordinator, entry)
-        self._id = id
+        self._id = idx
         self.description = description
         self._icon = icon
         self.current_temperature_value = None
@@ -93,6 +93,8 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         ]
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
+        """Set Temperature."""
+
         mode = self.coordinator.data["circuit"]["mode"]
 
         if mode == 0:  # OFF
@@ -105,6 +107,8 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         await self.coordinator.async_set_circuit_target_temperature(mode, target)
 
     async def async_set_hvac_mode(self, hvac_mode: str) -> None:
+        """Set HVAC Mode."""
+
         # Turn on the device if not already on
         if hvac_mode == HVACMode.OFF:
             await self.coordinator.async_set_circuit_mode(LoexCircuitMode.LOEX_MODE_OFF)
@@ -123,7 +127,7 @@ class loex_main_circuit(loex_entity, ClimateEntity):
             )
         else:
             _LOGGER.warning(
-                f"Unsupported mode for this device ({self.name}): {hvac_mode}"
+                "Unsupported mode for this device (%s): %s", self.name, hvac_mode
             )
             return
 
@@ -132,14 +136,14 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         """Return current operation."""
         if self.coordinator.data["circuit"]["mode"] == LoexCircuitMode.LOEX_MODE_OFF:
             return HVACMode.OFF
-        elif self.coordinator.data["circuit"]["mode"] == LoexCircuitMode.LOEX_MODE_AUTO:
+        if self.coordinator.data["circuit"]["mode"] == LoexCircuitMode.LOEX_MODE_AUTO:
             return HVACMode.AUTO
-        else:
-            season = self.coordinator.data["circuit"]["season"]
-            if season == LoexSeason.LOEX_WINTER:
-                return HVACMode.HEAT
-            elif season == LoexSeason.LOEX_SUMMER:
-                return HVACMode.COOL
+
+        season = self.coordinator.data["circuit"]["season"]
+        if season == LoexSeason.LOEX_WINTER:
+            return HVACMode.HEAT
+        if season == LoexSeason.LOEX_SUMMER:
+            return HVACMode.COOL
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -166,6 +170,7 @@ class loex_main_circuit(loex_entity, ClimateEntity):
     @property
     def hvac_action(self) -> HVACAction:
         """Return the current running hvac operation if supported.
+
         Need to be one of CURRENT_HVAC_*.
         """
         season = self.coordinator.data["circuit"]["season"]
@@ -183,31 +188,33 @@ class loex_main_circuit(loex_entity, ClimateEntity):
 
     @property
     def current_temperature(self) -> float:
+        """Get Current Temperature."""
         value = self.coordinator.data["circuit"]["home_temperature"]
         if self.current_temperature_value is None:
             self.current_temperature_value = value
-        else:
-            if abs(value - self.current_temperature_value) < CONTROL_VALUE:
-                self.current_temperature_value = value
+        elif abs(value - self.current_temperature_value) < CONTROL_VALUE:
+            self.current_temperature_value = value
 
         return self.current_temperature_value
 
     @property
     def target_temperature(self) -> float:
+        """Get Target Temperature."""
         return self.coordinator.data["circuit"]["temperature"]
 
     @property
     def target_humidity(self) -> int:
+        """Get Target Humidity."""
         return self.coordinator.data["circuit"]["target_humidity"]
 
     @property
     def current_humidity(self) -> int:
+        """Get Current Humidity."""
         value = self.coordinator.data["circuit"]["home_humidity"]
         if self.current_humidity_value is None:
             self.current_humidity_value = value
-        else:
-            if abs(value - self.current_humidity_value) < CONTROL_VALUE:
-                self.current_humidity_value = value
+        elif abs(value - self.current_humidity_value) < CONTROL_VALUE:
+            self.current_humidity_value = value
 
         return self.current_humidity_value
 
@@ -224,30 +231,38 @@ class loex_main_circuit(loex_entity, ClimateEntity):
 
     @property
     def preset_modes(self) -> list[str]:
+        """Get Preset Modes."""
         return self._preset_list
 
     @property
     def temperature_unit(self) -> str:
+        """Get Temperature Unit."""
         return UnitOfTemperature.CELSIUS
 
     @property
     def icon(self) -> str:
+        """Get Icon."""
         return self._icon
 
     @property
     def name(self) -> str:
+        """Get Name."""
         return f"{self.description}"
 
     @property
     def id(self) -> str:
+        """Get Id."""
         return f"{DOMAIN}_{self._id}"
 
     @property
     def unique_id(self) -> str:
+        """Get Unique Id."""
         return f"{DOMAIN}-{self._id}-{self.coordinator.api.host}"
 
 
 class loex_thermostat(loex_entity, ClimateEntity):
+    """Create Loex Thermostat."""
+
     def __init__(
         self,
         coordinator: loex_coordinator,
@@ -256,6 +271,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
         description: str,
         icon: str,
     ) -> None:
+        """Initialize."""
         super().__init__(coordinator, entry)
         self._id = idx
         self.description = description
@@ -280,6 +296,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
         ]
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
+        """Set Hvac Mode."""
         # Turn on the device if not already on
         if hvac_mode == HVACMode.OFF:
             await self.coordinator.async_set_room_mode(
@@ -300,10 +317,11 @@ class loex_thermostat(loex_entity, ClimateEntity):
             )
         else:
             _LOGGER.warning(
-                f"Unsupported mode for this device ({self.name}): {hvac_mode}"
+                "Unsupported mode for this device (%s): %s", self.name, hvac_mode
             )
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
+        """Set Temperature."""
         if self.coordinator.data["circuit"]["mode"] == LoexRoomMode.LOEX_ROOM_MODE_AUTO:
             return  # TODO: define what to do
         if self.coordinator.data["circuit"]["mode"] == LoexRoomMode.LOEX_ROOM_MODE_OFF:
@@ -319,8 +337,9 @@ class loex_thermostat(loex_entity, ClimateEntity):
         await self.coordinator.async_set_room_target_temperature(self._id, int(target))
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set preset mode."""
         # await self._device.async_set_mode(ThermostatV3Mode[preset_mode])
-        _LOGGER.debug(f"Set present mode {preset_mode}")
+        _LOGGER.debug("Set present mode %s", preset_mode)
 
     @property
     def hvac_mode(self) -> HVACMode:
@@ -358,6 +377,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
     @property
     def preset_modes(self) -> list[str]:
+        """Get preset modes."""
         return self._preset_list
 
     @property
@@ -384,6 +404,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
     @property
     def hvac_action(self) -> HVACAction:
         """Return the current running hvac operation if supported.
+
         Need to be one of CURRENT_HVAC_*.
         """
         season = self.coordinator.data["circuit"]["season"]
@@ -403,17 +424,18 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
     @property
     def current_temperature(self) -> float:
+        """Get current temperature."""
         value = self.coordinator.data[self._id]["temperature"]
         if self.current_temperature_value is None:
             self.current_temperature_value = value
-        else:
-            if abs(value - self.current_temperature_value) < CONTROL_VALUE:
-                self.current_temperature_value = value
+        elif abs(value - self.current_temperature_value) < CONTROL_VALUE:
+            self.current_temperature_value = value
 
         return self.current_temperature_value
 
     @property
     def target_temperature(self) -> float:
+        """Get target temperature."""
         # This check is to avoid the problem that the data sent from the sistem get the update after some time
         if self.set_target_temperature_pending:
             if (
@@ -428,35 +450,36 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
     @property
     def current_humidity(self) -> int:
+        """Get current humidity."""
         value = self.coordinator.data[self._id]["humidity"]
         if self.current_humidity_value is None:
             self.current_humidity_value = value
-        else:
-            if abs(value - self.current_humidity_value) < CONTROL_VALUE:
-                self.current_humidity_value = value
+        elif abs(value - self.current_humidity_value) < CONTROL_VALUE:
+            self.current_humidity_value = value
 
         return self.current_humidity_value
 
     @property
     def temperature_unit(self) -> str:
+        """Get temperature unit."""
         return UnitOfTemperature.CELSIUS
 
     @property
     def icon(self) -> str:
+        """Get icon."""
         return self._icon
 
     @property
     def name(self) -> str:
+        """Get name."""
         return f"{self.description}"
 
     @property
     def id(self) -> str:
+        """Get id."""
         return f"{DOMAIN}_{self._id}"
 
     @property
     def unique_id(self) -> str:
+        """Get unique id."""
         return f"{DOMAIN}-{self._id}-{self.coordinator.api.host}"
-
-
-# def setup_platform(hass, config, async_add_entities, discovery_info=None):
-#    pass

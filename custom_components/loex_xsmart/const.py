@@ -1,6 +1,6 @@
 """Constants for the Loex Xsmart Integration integration."""
 
-from homeassistant.backports.enum import StrEnum
+import enum
 
 DOMAIN = "loex_xsmart"
 
@@ -20,7 +20,9 @@ CONTROL_VALUE = 20
 
 
 # HVAC LOEX MODES
-class LoexCircuitMode(StrEnum):
+class LoexCircuitMode(enum.StrEnum):
+    """Circuit Mode Enumeration."""
+
     LOEX_MODE_OFF = "0"
     LOEX_MODE_COMFORT = "1"
     LOEX_MODE_ECO = "2"
@@ -28,7 +30,9 @@ class LoexCircuitMode(StrEnum):
 
 
 # HVAC LOEX ROOM MODES
-class LoexRoomMode(StrEnum):
+class LoexRoomMode(enum.StrEnum):
+    """Loex Room Mode Enumeration."""
+
     LOEX_ROOM_MODE_OFF = "3"
     LOEX_ROOM_MODE_COMFORT = "1"
     LOEX_ROOM_MODE_ECO = "2"
@@ -36,6 +40,8 @@ class LoexRoomMode(StrEnum):
 
 
 # LOEX SEASONS
-class LoexSeason(StrEnum):
+class LoexSeason(enum.StrEnum):
+    """Loex Season Enumeration."""
+
     LOEX_WINTER = "0"
     LOEX_SUMMER = "1"

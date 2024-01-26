@@ -2,18 +2,15 @@
 from __future__ import annotations
 
 import logging
-
 from typing import Any
 
 import voluptuous as vol
 
 from homeassistant import config_entries, exceptions
-from homeassistant.core import HomeAssistant
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
 
-
-from .const import DOMAIN, CONF_SYNC_INTERVAL, DEFAULT_SYNC_INTERVAL
+from .const import CONF_SYNC_INTERVAL, DEFAULT_SYNC_INTERVAL, DOMAIN
 from .loex_api import loex_api
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,18 +80,24 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
+        """Get Options flow."""
         return OptionsFlowHandler(config_entry)
 
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle configuration option flow."""
+
     def __init__(self, config_entry) -> None:
+        """Initialize."""
         self.config_entry = config_entry
         self.options = dict(config_entry.options)
 
-    async def async_step_init(self, user_input=None):  # pylint: disable=unused-argument
-        return await self.async_step_user()
+    async def async_step_init(self, user_input=None):
+        """Step initialize."""
+        return await self.async_step_user(user_input)
 
     async def async_step_user(self, user_input=None):
+        """Step User setup."""
         if user_input is not None:
             self.options.update(user_input)
             return await self._update_options()

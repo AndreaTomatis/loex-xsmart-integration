@@ -8,10 +8,9 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .loex_api import loex_api
+from .const import CONF_SYNC_INTERVAL, DEFAULT_SYNC_INTERVAL, DOMAIN
 from .coordinator import loex_coordinator
-
-from .const import DOMAIN, CONF_SYNC_INTERVAL, DEFAULT_SYNC_INTERVAL
+from .loex_api import loex_api
 
 PLATFORMS: list[Platform] = [Platform.CLIMATE, Platform.SENSOR]
 
@@ -76,5 +75,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Reload entries."""
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)

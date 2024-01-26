@@ -2,18 +2,20 @@
 
 import logging
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfTemperature, PERCENTAGE
+from homeassistant.const import PERCENTAGE, UnitOfTemperature
+from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, CONTROL_VALUE
-from .entity import loex_entity
+from .const import CONTROL_VALUE, DOMAIN
 from .coordinator import loex_coordinator
+from .entity import loex_entity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> None:
+    """Create setup entry."""
     coordinator: loex_coordinator
 
     coordinator = hass.data[DOMAIN][entry.entry_id]
@@ -56,6 +58,8 @@ async def async_setup_entry(hass, entry, async_add_entities) -> None:
 
 
 class loex_temperature_sensor(loex_entity, SensorEntity):
+    """Loex Temperature sensor class."""
+
     def __init__(
         self,
         coordinator: loex_coordinator,
@@ -66,6 +70,7 @@ class loex_temperature_sensor(loex_entity, SensorEntity):
         icon: str,
         device_class: str,
     ) -> None:
+        """Initialize."""
         super().__init__(coordinator, entry)
         self._id = idx
         self.description = description
@@ -76,41 +81,49 @@ class loex_temperature_sensor(loex_entity, SensorEntity):
 
     @property
     def state(self):
+        """Return External temperature."""
         value = self.coordinator.data["external"]["ext_temp"]
         if self.external_temp is None:
             self.external_temp = value
-        else:
-            if abs(value - self.external_temp) < CONTROL_VALUE:
-                self.external_temp = value
+        elif abs(value - self.external_temp) < CONTROL_VALUE:
+            self.external_temp = value
 
         return self.external_temp
 
     @property
     def unit_of_measurement(self):
+        """Get unit."""
         return self.unit
 
     @property
     def icon(self) -> str:
+        """Get icon."""
         return self._icon
 
     @property
     def device_class(self) -> SensorDeviceClass:
+        """Get device class."""
         return self._device_class
 
     @property
     def name(self) -> str:
+        """Get name."""
         return f"{self.description}"
 
     @property
     def id(self):
+        """Get id."""
         return f"{DOMAIN}_{self._id}"
 
     @property
     def unique_id(self):
+        """Get unique id."""
         return f"{DOMAIN}-{self._id}-{self.coordinator.api.host}"
 
 
 class loex_humidity_sensor(loex_entity, SensorEntity):
+    """Loex Humidity sensor class."""
+
     def __init__(
         self,
         coordinator: loex_coordinator,
@@ -122,6 +135,7 @@ class loex_humidity_sensor(loex_entity, SensorEntity):
         icon: str,
         device_class: str,
     ) -> None:
+        """Inizialize."""
         super().__init__(coordinator, entry)
         self._id = idx
         self._room_id = room_id
@@ -133,35 +147,41 @@ class loex_humidity_sensor(loex_entity, SensorEntity):
 
     @property
     def state(self):
+        """Return humidity value."""
         value = self.coordinator.data[self._room_id]["humidity"]
         if self.room_humidity is None:
             self.room_humidity = value
-        else:
-            if abs(value - self.room_humidity) < CONTROL_VALUE:
-                self.room_humidity = value
+        elif abs(value - self.room_humidity) < CONTROL_VALUE:
+            self.room_humidity = value
 
         return self.room_humidity
 
     @property
     def unit_of_measurement(self):
+        """Get unit."""
         return self.unit
 
     @property
     def icon(self):
+        """Get icon."""
         return self._icon
 
     @property
     def device_class(self) -> SensorDeviceClass:
+        """Get device class."""
         return self._device_class
 
     @property
     def name(self) -> str:
+        """Get name."""
         return f"{self.description}"
 
     @property
     def id(self):
+        """Get id."""
         return f"{DOMAIN}_{self._id}"
 
     @property
     def unique_id(self):
+        """Get unique id."""
         return f"{DOMAIN}-{self._id}-{self.coordinator.api.host}"

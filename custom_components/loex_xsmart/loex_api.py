@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import json
 import logging
-import requests
-
 import urllib.parse
+
+import requests
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import LoexSeason, MAX_ROOMS
+from .const import MAX_ROOMS, LoexSeason
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,6 +17,8 @@ _ENDPOINT = "https://xsmart.loex.it"
 
 
 class loex_api:
+    """Loex API class."""
+
     def __init__(self) -> None:
         """Initialize."""
         self.host = _ENDPOINT
@@ -30,6 +32,7 @@ class loex_api:
     def authenticate(
         self, username: str, password: str, device_id: str, plant: str
     ) -> bool:
+        """Autenticate."""
         url = (
             self.host + "/jwt/?id=" + device_id + "&plant=" + urllib.parse.quote(plant)
         )
@@ -54,6 +57,7 @@ class loex_api:
         return False
 
     def get_data(self) -> dict:
+        """Get data."""
         # request data
         url = self.host + "/" + self.device_id + "/input.json"
 
@@ -72,6 +76,7 @@ class loex_api:
             raise CannotConnect from excep
 
     def save_data(self, payload):
+        """Save data."""
         url = self.host + "/" + self.device_id + "/output.json"
 
         try:
@@ -96,6 +101,7 @@ class loex_api:
             raise WriteToRemoteDeviceError
 
     def extract_from_api_data(self, data: json) -> dict:
+        """Extract data from API."""
         aggregated_data = {}
 
         # Get data related to external
@@ -307,6 +313,7 @@ class loex_api:
         return aggregated_data
 
     def set_room_target_temperature(self, room_id, correction):
+        """Set room target temperature."""
         idx = room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
 
         payload = str(17621 + 10 * idx) + "=" + str(correction)
@@ -314,6 +321,7 @@ class loex_api:
         self.save_data(payload)
 
     def set_circuit_target_temperature(self, mode, correction):
+        """Set circuit target temperature."""
         if mode == 1:
             payload = str(18011) + "=" + str(correction)
         elif mode == 2:
@@ -322,6 +330,7 @@ class loex_api:
         self.save_data(payload)
 
     def set_room_mode(self, room_id, mode):
+        """Set room mode."""
         idx = room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
 
         payload = str(17622 + 10 * idx) + "=" + str(mode)
@@ -329,6 +338,7 @@ class loex_api:
         self.save_data(payload)
 
     def set_circuit_mode(self, mode):
+        """Set circuit mode."""
         payload = str(18001) + "=" + str(mode)
 
         self.save_data(payload)
