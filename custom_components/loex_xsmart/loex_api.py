@@ -58,7 +58,6 @@ class loex_api:
 
     def get_data(self) -> dict:
         """Get data."""
-        # request data
         url = self.host + "/" + self.device_id + "/input.json"
 
         try:
@@ -92,61 +91,56 @@ class loex_api:
             self.authenticate(self.username, self.password, self.device_id, self.plant)
             raise CannotConnect from excep
 
-        # print(response.text)
-        # print(response.request.url)
-        # print(response.request.body)
-        # print(response.request.headers)
-
         if response.status_code != 200:
             raise WriteToRemoteDeviceError
 
-    def extract_from_api_data(self, data: json) -> dict:
-        """Extract data from API."""
-        aggregated_data = {}
+    def parse_external_data(self, data: json) -> dict:
+        """Parse external data."""
+        external_data = {}
 
-        # Get data related to external
-        aggregated_data["external"] = {}
         try:
-            aggregated_data["external"]["ext_temp"] = data["t" + str(10011)] / 10
+            external_data["ext_temp"] = data["t" + str(10011)] / 10
         except KeyError:
-            aggregated_data["external"]["ext_temp"] = "N/A"
+            external_data["ext_temp"] = "N/A"
 
-        # Get data for the circuit
-        aggregated_data["circuit"] = {}
+        return external_data
+
+    def parse_circuit_data(self, data: json) -> dict:
+        """Parse circuit data."""
+        circuit_data = {}
+
         try:
-            aggregated_data["circuit"]["name"] = data["t" + str(20001)]
+            circuit_data["name"] = data["t" + str(20001)]
         except KeyError:
-            aggregated_data["circuit"]["name"] = "N/A"
+            circuit_data["name"] = "N/A"
 
         # Home temperature maybe equivalent to the max of all the rooms
         try:
-            aggregated_data["circuit"]["home_temperature"] = data["t" + str(10003)] / 10
+            circuit_data["home_temperature"] = data["t" + str(10003)] / 10
         except KeyError:
-            aggregated_data["circuit"]["home_temperature"] = "N/A"
+            circuit_data["home_temperature"] = "N/A"
 
         # Home humidity maybe equivalent to the max of all the rooms
         try:
-            aggregated_data["circuit"]["home_humidity"] = data["t" + str(10004)] / 10
+            circuit_data["home_humidity"] = data["t" + str(10004)] / 10
         except KeyError:
-            aggregated_data["circuit"]["home_humidity"] = "N/A"
+            circuit_data["home_humidity"] = "N/A"
 
         # Set temperature -> it depends on the mode value
         try:
-            aggregated_data["circuit"]["temperature"] = data["t" + str(10101)] / 10
+            circuit_data["temperature"] = data["t" + str(10101)] / 10
         except KeyError:
-            aggregated_data["circuit"]["temperature"] = "N/A"
+            circuit_data["temperature"] = "N/A"
 
         try:
-            aggregated_data["circuit"]["comfort_temperature"] = (
-                data["t" + str(18011)] / 10
-            )
+            circuit_data["comfort_temperature"] = data["t" + str(18011)] / 10
         except KeyError:
-            aggregated_data["circuit"]["comfort_temperature"] = "N/A"
+            circuit_data["comfort_temperature"] = "N/A"
 
         try:
-            aggregated_data["circuit"]["eco_temperature"] = data["t" + str(18012)] / 10
+            circuit_data["eco_temperature"] = data["t" + str(18012)] / 10
         except KeyError:
-            aggregated_data["circuit"]["eco_temperature"] = "N/A"
+            circuit_data["eco_temperature"] = "N/A"
 
         # ["circuit"]["mode"]:
         # 0 : OFF
@@ -154,9 +148,9 @@ class loex_api:
         # 2 : ECO
         # 3 : AUTO
         try:
-            aggregated_data["circuit"]["mode"] = data["t" + str(10103)]
+            circuit_data["mode"] = data["t" + str(10103)]
         except KeyError:
-            aggregated_data["circuit"]["mode"] = "N/A"
+            circuit_data["mode"] = "N/A"
 
         # ["circuit"]["state"]:
         # 0 : OFF
@@ -164,151 +158,120 @@ class loex_api:
         # 2 : Unknwown
         # 3 : IDLE
         try:
-            aggregated_data["circuit"]["state"] = data["t" + str(10105)]
+            circuit_data["state"] = data["t" + str(10105)]
         except KeyError:
-            aggregated_data["circuit"]["state"] = "N/A"
+            circuit_data["state"] = "N/A"
 
         try:
-            aggregated_data["circuit"]["deumidification_active"] = data[
-                "t" + str(10107)
-            ]
+            circuit_data["deumidification_active"] = data["t" + str(10107)]
         except KeyError:
-            aggregated_data["circuit"]["deumidification_active"] = "N/A"
+            circuit_data["deumidification_active"] = "N/A"
 
         try:
-            aggregated_data["circuit"]["target_humidity"] = data["t" + str(18081)] / 10
+            circuit_data["target_humidity"] = data["t" + str(18081)] / 10
         except KeyError:
-            aggregated_data["circuit"]["target_humidity"] = "N/A"
+            circuit_data["target_humidity"] = "N/A"
 
         try:
-            aggregated_data["circuit"]["histeresys_humidity"] = (
-                data["t" + str(18082)] / 10
-            )
+            circuit_data["histeresys_humidity"] = data["t" + str(18082)] / 10
         except KeyError:
-            aggregated_data["circuit"]["histeresys_humidity"] = "N/A"
+            circuit_data["histeresys_humidity"] = "N/A"
 
         try:
             if data["t" + str(10042)] == 1 and data["t" + str(10043)] == 0:
-                aggregated_data["circuit"]["season"] = LoexSeason.LOEX_SUMMER
+                circuit_data["season"] = LoexSeason.LOEX_SUMMER
             else:
-                aggregated_data["circuit"]["season"] = LoexSeason.LOEX_WINTER
+                circuit_data["season"] = LoexSeason.LOEX_WINTER
         except KeyError:
-            aggregated_data["circuit"]["season"] = "N/A"
+            circuit_data["season"] = "N/A"
 
-        # Extract room data
-        for room_id in range(MAX_ROOMS):
-            aggregated_data[room_id] = {}
+        return circuit_data
+
+    def parse_room_data(self, data: json, room_id) -> dict:
+        """Parse room data."""
+        room_data = {}
 
         # Extract Room name
-        for room_id in range(MAX_ROOMS):
-            try:
-                aggregated_data[room_id]["room_name"] = data[
-                    "t" + str(20201 + 7 * room_id)
-                ]
-
-            except KeyError:
-                aggregated_data[room_id]["room_name"] = "N/A"
+        try:
+            room_data["room_name"] = data["t" + str(20201 + 7 * room_id)]
+        except KeyError:
+            room_data["room_name"] = "N/A"
 
         # Extract validity
-        for room_id in range(MAX_ROOMS):
-            try:
-                idx = (
-                    room_id
-                    + 2 * (room_id >= 8)
-                    + 2 * (room_id >= 18)
-                    + 2 * (room_id >= 28)
-                )
-                aggregated_data[room_id]["validity"] = data["t" + str(11021 + 10 * idx)]
-
-            except KeyError:
-                aggregated_data[room_id]["validity"] = "N/A"
+        try:
+            idx = (
+                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+            )
+            room_data["validity"] = data["t" + str(11021 + 10 * idx)]
+        except KeyError:
+            room_data["validity"] = "N/A"
 
         # Extract current temperature
-        for room_id in range(MAX_ROOMS):
-            try:
-                idx = (
-                    room_id
-                    + 2 * (room_id >= 8)
-                    + 2 * (room_id >= 18)
-                    + 2 * (room_id >= 28)
-                )
-                aggregated_data[room_id]["temperature"] = (
-                    data["t" + str(11022 + 10 * idx)] / 10
-                )
-
-            except KeyError:
-                aggregated_data[room_id]["temperature"] = "N/A"
+        try:
+            idx = (
+                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+            )
+            room_data["temperature"] = data["t" + str(11022 + 10 * idx)] / 10
+        except KeyError:
+            room_data["temperature"] = "N/A"
 
         # Extract target temperature
-        for room_id in range(MAX_ROOMS):
-            try:
-                idx = (
-                    room_id
-                    + 2 * (room_id >= 8)
-                    + 2 * (room_id >= 18)
-                    + 2 * (room_id >= 28)
-                )
-                aggregated_data[room_id]["target_temperature"] = (
-                    data["t" + str(11023 + 10 * idx)] / 10
-                )
-
-            except KeyError:
-                aggregated_data[room_id]["target_temperature"] = "N/A"
+        try:
+            idx = (
+                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+            )
+            room_data["target_temperature"] = data["t" + str(11023 + 10 * idx)] / 10
+        except KeyError:
+            room_data["target_temperature"] = "N/A"
 
         # Extract humidity
-        for room_id in range(MAX_ROOMS):
-            try:
-                idx = (
-                    room_id
-                    + 2 * (room_id >= 8)
-                    + 2 * (room_id >= 18)
-                    + 2 * (room_id >= 28)
-                )
-                aggregated_data[room_id]["humidity"] = (
-                    data["t" + str(11027 + 10 * idx)] / 10
-                )
-
-            except KeyError:
-                aggregated_data[room_id]["humidity"] = "N/A"
+        try:
+            idx = (
+                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+            )
+            room_data["humidity"] = data["t" + str(11027 + 10 * idx)] / 10
+        except KeyError:
+            room_data["humidity"] = "N/A"
 
         # Extract output_valve
-        for room_id in range(MAX_ROOMS):
-            try:
-                idx = (
-                    room_id
-                    + 2 * (room_id >= 8)
-                    + 2 * (room_id >= 18)
-                    + 2 * (room_id >= 28)
-                )
-                aggregated_data[room_id]["output_valve"] = data[
-                    "t" + str(11025 + 10 * idx)
-                ]
-
-            except KeyError:
-                aggregated_data[room_id]["output_valve"] = "N/A"
+        try:
+            idx = (
+                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+            )
+            room_data["output_valve"] = data["t" + str(11025 + 10 * idx)]
+        except KeyError:
+            room_data["output_valve"] = "N/A"
 
         # Extract hvac modes
         # mode 0 = AUTO
         # mode 1 = COMFORT
         # mode 2 = ECO
         # mode 3 = OFF
+        try:
+            idx = (
+                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+            )
+            room_data["room_mode"] = data["t" + str(11026 + 10 * idx)]
+        except KeyError:
+            room_data["room_mode"] = "N/A"
 
+        return room_data
+
+    def extract_from_api_data(self, data: json) -> dict:
+        """Extract data from API."""
+        aggregated_data = {}
+
+        # Parse data related to external
+        aggregated_data["external"] = self.parse_external_data(data)
+
+        # Parse data for the circuit
+        aggregated_data["circuit"] = self.parse_circuit_data(data)
+
+        # Parse room data
         for room_id in range(MAX_ROOMS):
-            try:
-                idx = (
-                    room_id
-                    + 2 * (room_id >= 8)
-                    + 2 * (room_id >= 18)
-                    + 2 * (room_id >= 28)
-                )
-                aggregated_data[room_id]["room_mode"] = data[
-                    "t" + str(11026 + 10 * idx)
-                ]
+            aggregated_data[room_id] = self.parse_room_data(data, room_id)
 
-            except KeyError:
-                aggregated_data[room_id]["room_mode"] = "N/A"
-
-        # print(aggregated_data)
+        _LOGGER.debug("Data parsed from API:\n %s", aggregated_data)
 
         return aggregated_data
 

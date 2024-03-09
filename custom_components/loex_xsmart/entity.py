@@ -31,7 +31,7 @@ class loex_entity(
         }
 
     @property
-    def available(self) -> bool:
+    def _available(self) -> bool:
         """Return whether is available."""
         return self.coordinator.data
 

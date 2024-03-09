@@ -83,9 +83,10 @@ class loex_temperature_sensor(loex_entity, SensorEntity):
     def state(self):
         """Return External temperature."""
         value = self.coordinator.data["external"]["ext_temp"]
-        if self.external_temp is None:
-            self.external_temp = value
-        elif abs(value - self.external_temp) < CONTROL_VALUE:
+        if (
+            self.external_temp is None
+            or abs(value - self.external_temp) < CONTROL_VALUE
+        ):
             self.external_temp = value
 
         return self.external_temp
@@ -149,9 +150,10 @@ class loex_humidity_sensor(loex_entity, SensorEntity):
     def state(self):
         """Return humidity value."""
         value = self.coordinator.data[self._room_id]["humidity"]
-        if self.room_humidity is None:
-            self.room_humidity = value
-        elif abs(value - self.room_humidity) < CONTROL_VALUE:
+        if (
+            self.room_humidity is None
+            or abs(value - self.room_humidity) < CONTROL_VALUE
+        ):
             self.room_humidity = value
 
         return self.room_humidity

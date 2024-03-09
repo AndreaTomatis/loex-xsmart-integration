@@ -78,6 +78,8 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         self._icon = icon
         self.current_temperature_value = None
         self.current_humidity_value = None
+        # TODO: Remove by  2025.1
+        self._enable_turn_on_off_backwards_compatibility = False
 
         self._hvac_mode = HVACMode.OFF
         self._preset_mode = PRESET_COMFORT
@@ -91,6 +93,26 @@ class loex_main_circuit(loex_entity, ClimateEntity):
             HVACMode.HEAT_COOL,
             HVACMode.OFF,
         ]
+
+    async def async_turn_on(self):
+        """Turn the entity on."""
+        if self._hvac_mode == HVACMode.HEAT_COOL:
+            if self._preset_mode == PRESET_COMFORT:
+                await self.coordinator.async_set_circuit_mode(
+                    LoexCircuitMode.LOEX_MODE_COMFORT
+                )
+            elif self._preset_mode == PRESET_ECO:
+                await self.coordinator.async_set_circuit_mode(
+                    LoexCircuitMode.LOEX_MODE_ECO
+                )
+        elif self._hvac_mode == HVACMode.AUTO:
+            await self.coordinator.async_set_circuit_mode(
+                LoexCircuitMode.LOEX_MODE_AUTO
+            )
+
+    async def async_turn_off(self):
+        """Turn the entity off."""
+        await self.coordinator.async_set_circuit_mode(LoexCircuitMode.LOEX_MODE_OFF)
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set Temperature."""
@@ -165,7 +187,11 @@ class loex_main_circuit(loex_entity, ClimateEntity):
     @property
     def supported_features(self):
         """Return the list of supported features."""
-        return ClimateEntityFeature.TARGET_TEMPERATURE
+        return (
+            ClimateEntityFeature.TARGET_TEMPERATURE
+            | ClimateEntityFeature.TURN_ON
+            | ClimateEntityFeature.TURN_OFF
+        )
 
     @property
     def hvac_action(self) -> HVACAction:
@@ -190,9 +216,10 @@ class loex_main_circuit(loex_entity, ClimateEntity):
     def current_temperature(self) -> float:
         """Get Current Temperature."""
         value = self.coordinator.data["circuit"]["home_temperature"]
-        if self.current_temperature_value is None:
-            self.current_temperature_value = value
-        elif abs(value - self.current_temperature_value) < CONTROL_VALUE:
+        if (
+            self.current_temperature_value is None
+            or abs(value - self.current_temperature_value) < CONTROL_VALUE
+        ):
             self.current_temperature_value = value
 
         return self.current_temperature_value
@@ -211,9 +238,10 @@ class loex_main_circuit(loex_entity, ClimateEntity):
     def current_humidity(self) -> int:
         """Get Current Humidity."""
         value = self.coordinator.data["circuit"]["home_humidity"]
-        if self.current_humidity_value is None:
-            self.current_humidity_value = value
-        elif abs(value - self.current_humidity_value) < CONTROL_VALUE:
+        if (
+            self.current_humidity_value is None
+            or abs(value - self.current_humidity_value) < CONTROL_VALUE
+        ):
             self.current_humidity_value = value
 
         return self.current_humidity_value
@@ -283,6 +311,8 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
         self._preset_mode = PRESET_COMFORT
         self._room_mode = HVACMode.OFF
+        # TODO: Remove by  2025.1
+        self._enable_turn_on_off_backwards_compatibility = False
 
         self._hvac_list = [
             HVACMode.AUTO,
@@ -319,6 +349,28 @@ class loex_thermostat(loex_entity, ClimateEntity):
             _LOGGER.warning(
                 "Unsupported mode for this device (%s): %s", self.name, hvac_mode
             )
+
+    async def async_turn_on(self):
+        """Turn the entity on."""
+        if self._room_mode == HVACMode.HEAT_COOL:
+            if self._preset_mode == PRESET_COMFORT:
+                await self.coordinator.async_set_room_mode(
+                    self._id, LoexRoomMode.LOEX_ROOM_MODE_COMFORT
+                )
+            elif self._preset_mode == PRESET_ECO:
+                await self.coordinator.async_set_room_mode(
+                    self._id, LoexRoomMode.LOEX_ROOM_MODE_ECO
+                )
+        elif self._room_mode == HVACMode.AUTO:
+            await self.coordinator.async_set_room_mode(
+                self._id, LoexRoomMode.LOEX_ROOM_MODE_AUTO
+            )
+
+    async def async_turn_off(self):
+        """Turn the entity off."""
+        await self.coordinator.async_set_room_mode(
+            self._id, LoexRoomMode.LOEX_ROOM_MODE_OFF
+        )
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set Temperature."""
@@ -399,7 +451,11 @@ class loex_thermostat(loex_entity, ClimateEntity):
     @property
     def supported_features(self) -> ClimateEntityFeature:
         """Return the list of supported features."""
-        return ClimateEntityFeature.TARGET_TEMPERATURE
+        return (
+            ClimateEntityFeature.TARGET_TEMPERATURE
+            | ClimateEntityFeature.TURN_ON
+            | ClimateEntityFeature.TURN_OFF
+        )
 
     @property
     def hvac_action(self) -> HVACAction:
@@ -426,9 +482,10 @@ class loex_thermostat(loex_entity, ClimateEntity):
     def current_temperature(self) -> float:
         """Get current temperature."""
         value = self.coordinator.data[self._id]["temperature"]
-        if self.current_temperature_value is None:
-            self.current_temperature_value = value
-        elif abs(value - self.current_temperature_value) < CONTROL_VALUE:
+        if (
+            self.current_temperature_value is None
+            or abs(value - self.current_temperature_value) < CONTROL_VALUE
+        ):
             self.current_temperature_value = value
 
         return self.current_temperature_value
@@ -452,9 +509,10 @@ class loex_thermostat(loex_entity, ClimateEntity):
     def current_humidity(self) -> int:
         """Get current humidity."""
         value = self.coordinator.data[self._id]["humidity"]
-        if self.current_humidity_value is None:
-            self.current_humidity_value = value
-        elif abs(value - self.current_humidity_value) < CONTROL_VALUE:
+        if (
+            self.current_humidity_value is None
+            or abs(value - self.current_humidity_value) < CONTROL_VALUE
+        ):
             self.current_humidity_value = value
 
         return self.current_humidity_value
