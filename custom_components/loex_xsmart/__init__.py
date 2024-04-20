@@ -1,4 +1,5 @@
 """The Loex Xsmart Integration integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -46,8 +47,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for platform in PLATFORMS:
         if entry.options.get(platform, True):
             coordinator.platforms.append(platform)
-            hass.async_add_job(
-                hass.config_entries.async_forward_entry_setup(entry, platform)
+            entry.async_create_task(
+                hass, hass.config_entries.async_forward_entry_setup(entry, platform)
             )
 
     entry.add_update_listener(async_reload_entry)

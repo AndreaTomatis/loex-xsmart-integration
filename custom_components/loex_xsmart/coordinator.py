@@ -33,7 +33,7 @@ class loex_coordinator(DataUpdateCoordinator):
         try:
             return await self.hass.async_add_executor_job(self.api.get_data)
         except Exception as exception:
-            raise UpdateFailed() from exception
+            raise UpdateFailed from exception
 
     async def async_set_room_target_temperature(self, room_id, target_temperature):
         """Set room target temperature."""
@@ -42,7 +42,7 @@ class loex_coordinator(DataUpdateCoordinator):
                 self.api.set_room_target_temperature, room_id, target_temperature
             )
         except Exception as exception:
-            raise UpdateFailed() from exception
+            raise UpdateFailed from exception
 
     async def async_set_circuit_target_temperature(self, mode, target_temperature):
         """Set circuit target temperature."""
@@ -51,7 +51,7 @@ class loex_coordinator(DataUpdateCoordinator):
                 self.api.set_circuit_target_temperature, mode, target_temperature
             )
         except Exception as exception:
-            raise UpdateFailed() from exception
+            raise UpdateFailed from exception
 
     async def async_set_room_mode(self, room_id, mode):
         """Set room mode temperature."""
@@ -60,7 +60,7 @@ class loex_coordinator(DataUpdateCoordinator):
                 self.api.set_room_mode, room_id, mode
             )
         except Exception as exception:
-            raise UpdateFailed() from exception
+            raise UpdateFailed from exception
 
     async def async_set_circuit_mode(self, mode):
         """Set circuit mode temperature."""
@@ -69,4 +69,4 @@ class loex_coordinator(DataUpdateCoordinator):
                 self.api.set_circuit_mode, mode
             )
         except Exception as exception:
-            raise UpdateFailed() from exception
+            raise UpdateFailed from exception

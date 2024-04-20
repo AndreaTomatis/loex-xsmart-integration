@@ -1,7 +1,7 @@
 """Climate Platform for Loex Xsmart Integration."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
@@ -154,7 +154,7 @@ class loex_main_circuit(loex_entity, ClimateEntity):
             return
 
     @property
-    def hvac_mode(self) -> Optional[str]:
+    def hvac_mode(self) -> str | None:
         """Return current operation."""
         if self.coordinator.data["circuit"]["mode"] == LoexCircuitMode.LOEX_MODE_OFF:
             return HVACMode.OFF
@@ -473,7 +473,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
         if valve_output > 0:
             if season == LoexSeason.LOEX_SUMMER:
                 return HVACAction.COOLING
-            elif season == LoexSeason.LOEX_WINTER:
+            if season == LoexSeason.LOEX_WINTER:
                 return HVACAction.HEATING
         else:
             return HVACAction.IDLE

@@ -1,4 +1,5 @@
 """The Loex Xsmart API integration."""
+
 from __future__ import annotations
 
 import json
@@ -67,8 +68,7 @@ class loex_api:
                 timeout=10,
             )
 
-            loex_data_structure = self.extract_from_api_data(data.json())
-            return loex_data_structure
+            return self.extract_from_api_data(data.json())
         except requests.exceptions.RequestException as excep:
             self.session.close()
             self.authenticate(self.username, self.password, self.device_id, self.plant)
