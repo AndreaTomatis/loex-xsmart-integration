@@ -10,7 +10,13 @@ import requests
 
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import MAX_ROOMS, LoexSeason
+from .const import (
+    MAX_ROOMS,
+    LoexCircuitMode,
+    LoexCircuitState,
+    LoexRoomMode,
+    LoexSeason,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -148,9 +154,9 @@ class loex_api:
         # 2 : ECO
         # 3 : AUTO
         try:
-            circuit_data["mode"] = data["t" + str(10103)]
+            circuit_data["mode"] = LoexCircuitMode(data["t" + str(10103)])
         except KeyError:
-            circuit_data["mode"] = "N/A"
+            circuit_data["mode"] = LoexCircuitMode.LOEX_MODE_NA
 
         # ["circuit"]["state"]:
         # 0 : OFF
@@ -158,9 +164,9 @@ class loex_api:
         # 2 : Unknwown
         # 3 : IDLE
         try:
-            circuit_data["state"] = data["t" + str(10105)]
+            circuit_data["state"] = LoexCircuitState(data["t" + str(10105)])
         except KeyError:
-            circuit_data["state"] = "N/A"
+            circuit_data["state"] = LoexCircuitState.LOEX_STATE_NA
 
         try:
             circuit_data["deumidification_active"] = data["t" + str(10107)]
@@ -251,9 +257,9 @@ class loex_api:
             idx = (
                 room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
             )
-            room_data["room_mode"] = data["t" + str(11026 + 10 * idx)]
+            room_data["room_mode"] = LoexRoomMode(data["t" + str(11026 + 10 * idx)])
         except KeyError:
-            room_data["room_mode"] = "N/A"
+            room_data["room_mode"] = LoexRoomMode.LOEX_ROOM_MODE_NA
 
         return room_data
 

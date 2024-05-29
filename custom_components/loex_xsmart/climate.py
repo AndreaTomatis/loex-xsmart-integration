@@ -15,7 +15,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfTemperature
 from homeassistant.core import HomeAssistant
 
-from .const import CONTROL_VALUE, DOMAIN, LoexCircuitMode, LoexRoomMode, LoexSeason
+from .const import (
+    CONTROL_VALUE,
+    DOMAIN,
+    LoexCircuitMode,
+    LoexCircuitState,
+    LoexRoomMode,
+    LoexSeason,
+)
 from .coordinator import loex_coordinator
 from .entity import loex_entity
 
@@ -202,14 +209,14 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         season = self.coordinator.data["circuit"]["season"]
         state = self.coordinator.data["circuit"]["state"]
 
-        if state == 3:
+        if state == LoexCircuitState.LOEX_MODE_IDLE:
             return HVACAction.IDLE
-        if state == 1:
+        if state == LoexCircuitState.LOEX_STATE_HEAT_COOL:
             if season == LoexSeason.LOEX_SUMMER:
                 return HVACAction.COOLING
             if season == LoexSeason.LOEX_WINTER:
                 return HVACAction.HEATING
-        elif state == 0:
+        elif state == LoexCircuitState.LOEX_STATE_OFF:
             return HVACAction.OFF
 
     @property
@@ -332,7 +339,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
             await self.coordinator.async_set_room_mode(
                 self._id, LoexRoomMode.LOEX_ROOM_MODE_OFF
             )
-        if hvac_mode == HVACMode.HEAT_COOL:
+        elif hvac_mode == HVACMode.HEAT_COOL:
             if self._preset_mode == PRESET_COMFORT:
                 await self.coordinator.async_set_room_mode(
                     self._id, LoexRoomMode.LOEX_ROOM_MODE_COMFORT
@@ -349,6 +356,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
             _LOGGER.warning(
                 "Unsupported mode for this device (%s): %s", self.name, hvac_mode
             )
+            return
 
     async def async_turn_on(self):
         """Turn the entity on."""
@@ -396,24 +404,29 @@ class loex_thermostat(loex_entity, ClimateEntity):
     @property
     def hvac_mode(self) -> HVACMode:
         """Return current operation."""
-        mode = self.coordinator.data[self._id]["room_mode"]
-        if mode == LoexRoomMode.LOEX_ROOM_MODE_OFF:
+        state = self.coordinator.data["circuit"]["state"]
+
+        if state == LoexCircuitState.LOEX_STATE_OFF:
+            # If the circuit is off we set the room to off.
             self._room_mode = HVACMode.OFF
-        elif mode == LoexRoomMode.LOEX_ROOM_MODE_AUTO:
-            self._room_mode = HVACMode.AUTO
         else:
-            season = self.coordinator.data["circuit"]["season"]
-            if season == LoexSeason.LOEX_WINTER:
-                self._room_mode = HVACMode.HEAT
-            elif season == LoexSeason.LOEX_SUMMER:
-                self._room_mode = HVACMode.COOL
-            # self._room_mode = HVACMode.HEAT_COOL
+            mode = self.coordinator.data[self._id]["room_mode"]
+            if mode == LoexRoomMode.LOEX_ROOM_MODE_OFF:
+                self._room_mode = HVACMode.OFF
+            elif mode == LoexRoomMode.LOEX_ROOM_MODE_AUTO:
+                self._room_mode = HVACMode.AUTO
+            else:
+                season = self.coordinator.data["circuit"]["season"]
+                if season == LoexSeason.LOEX_WINTER:
+                    self._room_mode = HVACMode.HEAT
+                elif season == LoexSeason.LOEX_SUMMER:
+                    self._room_mode = HVACMode.COOL
 
         return self._room_mode
 
     @property
     def preset_mode(self) -> str:
-        """Return current operation."""
+        """Return current active preset."""
         preset_mode = self.coordinator.data[self._id]["room_mode"]
         if preset_mode == LoexCircuitMode.LOEX_MODE_COMFORT:
             self._preset_mode = PRESET_COMFORT
@@ -459,14 +472,12 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
     @property
     def hvac_action(self) -> HVACAction:
-        """Return the current running hvac operation if supported.
+        """Return the current running hvac operation."""
 
-        Need to be one of CURRENT_HVAC_*.
-        """
         season = self.coordinator.data["circuit"]["season"]
         state = self.coordinator.data["circuit"]["state"]
 
-        if state == 0:
+        if state == LoexCircuitState.LOEX_STATE_OFF:
             return HVACAction.OFF
 
         valve_output = self.coordinator.data[self._id]["output_valve"]
