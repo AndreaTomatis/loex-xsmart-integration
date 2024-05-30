@@ -14,7 +14,7 @@ CONF_SYNC_INTERVAL = "sync_interval"
 
 DEFAULT_SYNC_INTERVAL = 10  # seconds
 
-MAX_ROOMS = 38
+MAX_ROOMS = 32
 
 CONTROL_VALUE = 20
 
@@ -45,10 +45,10 @@ class LoexCircuitState(enum.IntEnum):
 class LoexRoomMode(enum.IntEnum):
     """Loex Room Mode Enumeration."""
 
-    LOEX_ROOM_MODE_OFF = 3
+    LOEX_ROOM_MODE_AUTO = 0
     LOEX_ROOM_MODE_COMFORT = 1
     LOEX_ROOM_MODE_ECO = 2
-    LOEX_ROOM_MODE_AUTO = 0
+    LOEX_ROOM_MODE_OFF = 3
     LOEX_ROOM_MODE_NA = -1
 
 

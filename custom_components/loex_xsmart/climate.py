@@ -126,10 +126,10 @@ class loex_main_circuit(loex_entity, ClimateEntity):
 
         mode = self.coordinator.data["circuit"]["mode"]
 
-        if mode == 0:  # OFF
+        if mode == LoexCircuitMode.LOEX_MODE_OFF:
             return  # TODO: define what to do
-        if mode == 3:  # AUTO
-            return  # DO Nothing
+        if mode == LoexCircuitMode.LOEX_MODE_AUTO:
+            return  # Do Nothing
 
         target = int(kwargs.get("temperature") * 10)
 

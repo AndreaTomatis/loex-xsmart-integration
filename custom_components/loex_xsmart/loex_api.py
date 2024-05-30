@@ -197,53 +197,43 @@ class loex_api:
         """Parse room data."""
         room_data = {}
 
+        # Calculate index
+        idx = room_id + 2 * (room_id >= 8) + 2 * (room_id >= 16) + 2 * (room_id >= 24)
+
         # Extract Room name
         try:
             room_data["room_name"] = data["t" + str(20201 + 7 * room_id)]
+            # print(room_data["room_name"])
+
         except KeyError:
             room_data["room_name"] = "N/A"
 
         # Extract validity
         try:
-            idx = (
-                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
-            )
             room_data["validity"] = data["t" + str(11021 + 10 * idx)]
         except KeyError:
             room_data["validity"] = "N/A"
 
         # Extract current temperature
         try:
-            idx = (
-                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
-            )
             room_data["temperature"] = data["t" + str(11022 + 10 * idx)] / 10
         except KeyError:
             room_data["temperature"] = "N/A"
 
         # Extract target temperature
         try:
-            idx = (
-                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
-            )
             room_data["target_temperature"] = data["t" + str(11023 + 10 * idx)] / 10
         except KeyError:
             room_data["target_temperature"] = "N/A"
 
         # Extract humidity
         try:
-            idx = (
-                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
-            )
             room_data["humidity"] = data["t" + str(11027 + 10 * idx)] / 10
         except KeyError:
             room_data["humidity"] = "N/A"
 
         # Extract output_valve
         try:
-            idx = (
-                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
-            )
             room_data["output_valve"] = data["t" + str(11025 + 10 * idx)]
         except KeyError:
             room_data["output_valve"] = "N/A"
@@ -254,9 +244,6 @@ class loex_api:
         # mode 2 = ECO
         # mode 3 = OFF
         try:
-            idx = (
-                room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
-            )
             room_data["room_mode"] = LoexRoomMode(data["t" + str(11026 + 10 * idx)])
         except KeyError:
             room_data["room_mode"] = LoexRoomMode.LOEX_ROOM_MODE_NA
@@ -283,7 +270,7 @@ class loex_api:
 
     def set_room_target_temperature(self, room_id, correction):
         """Set room target temperature."""
-        idx = room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+        idx = room_id + 2 * (room_id >= 8) + 2 * (room_id >= 16) + 2 * (room_id >= 24)
 
         payload = str(17621 + 10 * idx) + "=" + str(correction)
 
@@ -300,7 +287,7 @@ class loex_api:
 
     def set_room_mode(self, room_id, mode):
         """Set room mode."""
-        idx = room_id + 2 * (room_id >= 8) + 2 * (room_id >= 18) + 2 * (room_id >= 28)
+        idx = room_id + 2 * (room_id >= 8) + 2 * (room_id >= 16) + 2 * (room_id >= 24)
 
         payload = str(17622 + 10 * idx) + "=" + str(mode)
 
