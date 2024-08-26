@@ -173,6 +173,7 @@ class loex_main_circuit(loex_entity, ClimateEntity):
             return HVACMode.HEAT
         if season == LoexSeason.LOEX_SUMMER:
             return HVACMode.COOL
+        return None
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -216,8 +217,9 @@ class loex_main_circuit(loex_entity, ClimateEntity):
                 return HVACAction.COOLING
             if season == LoexSeason.LOEX_WINTER:
                 return HVACAction.HEATING
-        elif state == LoexCircuitState.LOEX_STATE_OFF:
+        if state == LoexCircuitState.LOEX_STATE_OFF:
             return HVACAction.OFF
+        return None
 
     @property
     def current_temperature(self) -> float:
@@ -486,8 +488,8 @@ class loex_thermostat(loex_entity, ClimateEntity):
                 return HVACAction.COOLING
             if season == LoexSeason.LOEX_WINTER:
                 return HVACAction.HEATING
-        else:
-            return HVACAction.IDLE
+
+        return HVACAction.IDLE
 
     @property
     def current_temperature(self) -> float:
