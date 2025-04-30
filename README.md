@@ -7,6 +7,8 @@
 
 A full-featured Homeassistant component to drive Loex Xsmart Devices
 
+Currently supporting only version 2.8 API. 
+
 ## Installation
 
 You can install this component in two ways: via HACS or manually.
