@@ -1,4 +1,5 @@
 """Config flow for Loex Xsmart Integration integration."""
+
 from __future__ import annotations
 
 import logging
@@ -89,7 +90,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry) -> None:
         """Initialize."""
-        self.config_entry = config_entry
+        self._config_entry = config_entry
         self.options = dict(config_entry.options)
 
     async def async_step_init(self, user_input=None):
@@ -118,7 +119,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def _update_options(self):
         return self.async_create_entry(
-            title=self.config_entry.data.get(CONF_SYNC_INTERVAL), data=self.options
+            title=self._config_entry.data.get(CONF_SYNC_INTERVAL), data=self.options
         )
 
 
