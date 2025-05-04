@@ -43,6 +43,9 @@ async def async_setup_entry(
         if room_id == "external":
             continue
 
+        if room_id == "control":
+            continue
+
         if room_id == "circuit":
             main_circuit = loex_main_circuit(
                 coordinator,
@@ -96,14 +99,9 @@ class loex_main_circuit(loex_entity, ClimateEntity):
             PRESET_COMFORT,
         ]
 
-        self._hvac_list = [
-            HVACMode.HEAT_COOL,
-            HVACMode.OFF,
-        ]
-
     async def async_turn_on(self):
         """Turn the entity on."""
-        if self._hvac_mode == HVACMode.HEAT_COOL:
+        if self._hvac_mode in (HVACMode.HEAT, HVACMode.COOL):
             if self._preset_mode == PRESET_COMFORT:
                 await self.coordinator.async_set_circuit_mode(
                     LoexCircuitMode.LOEX_MODE_COMFORT
@@ -141,7 +139,7 @@ class loex_main_circuit(loex_entity, ClimateEntity):
         # Turn on the device if not already on
         if hvac_mode == HVACMode.OFF:
             await self.coordinator.async_set_circuit_mode(LoexCircuitMode.LOEX_MODE_OFF)
-        elif hvac_mode == HVACMode.HEAT_COOL:
+        elif hvac_mode in (HVACMode.HEAT, HVACMode.COOL):
             if self._preset_mode == PRESET_COMFORT:
                 await self.coordinator.async_set_circuit_mode(
                     LoexCircuitMode.LOEX_MODE_COMFORT
@@ -178,7 +176,23 @@ class loex_main_circuit(loex_entity, ClimateEntity):
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """List of available operation modes."""
-        return self._hvac_list
+
+        season = self.coordinator.data["circuit"]["season"]
+        if season == LoexSeason.LOEX_WINTER:
+            return [
+                HVACMode.AUTO,
+                HVACMode.HEAT,
+                HVACMode.OFF,
+            ]
+
+        if season == LoexSeason.LOEX_SUMMER:
+            return [
+                HVACMode.AUTO,
+                HVACMode.COOL,
+                HVACMode.OFF,
+            ]
+
+        return None
 
     @property
     def min_temp(self) -> float:
@@ -323,12 +337,6 @@ class loex_thermostat(loex_entity, ClimateEntity):
         # TODO: Remove by  2025.1
         self._enable_turn_on_off_backwards_compatibility = False
 
-        self._hvac_list = [
-            HVACMode.AUTO,
-            HVACMode.HEAT_COOL,
-            HVACMode.OFF,
-        ]
-
         self._preset_list = [
             PRESET_ECO,
             PRESET_COMFORT,
@@ -341,7 +349,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
             await self.coordinator.async_set_room_mode(
                 self._id, LoexRoomMode.LOEX_ROOM_MODE_OFF
             )
-        elif hvac_mode == HVACMode.HEAT_COOL:
+        elif hvac_mode in (HVACMode.COOL, HVACMode.HEAT):
             if self._preset_mode == PRESET_COMFORT:
                 await self.coordinator.async_set_room_mode(
                     self._id, LoexRoomMode.LOEX_ROOM_MODE_COMFORT
@@ -362,7 +370,7 @@ class loex_thermostat(loex_entity, ClimateEntity):
 
     async def async_turn_on(self):
         """Turn the entity on."""
-        if self._room_mode == HVACMode.HEAT_COOL:
+        if self._room_mode in (HVACMode.COOL, HVACMode.HEAT):
             if self._preset_mode == PRESET_COMFORT:
                 await self.coordinator.async_set_room_mode(
                     self._id, LoexRoomMode.LOEX_ROOM_MODE_COMFORT
@@ -440,7 +448,23 @@ class loex_thermostat(loex_entity, ClimateEntity):
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """List of available operation modes."""
-        return self._hvac_list
+
+        season = self.coordinator.data["circuit"]["season"]
+        if season == LoexSeason.LOEX_WINTER:
+            return [
+                HVACMode.AUTO,
+                HVACMode.HEAT,
+                HVACMode.OFF,
+            ]
+
+        if season == LoexSeason.LOEX_SUMMER:
+            return [
+                HVACMode.AUTO,
+                HVACMode.COOL,
+                HVACMode.OFF,
+            ]
+
+        return None
 
     @property
     def preset_modes(self) -> list[str]:

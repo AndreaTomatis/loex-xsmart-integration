@@ -25,6 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> N
     external_temp = loex_temperature_sensor(
         coordinator,
         entry,
+        "external",
         "ext_temp",
         "External Temperature Sensor",
         UnitOfTemperature.CELSIUS,
@@ -34,8 +35,37 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities) -> N
 
     entities.extend([external_temp])
 
+    flow_temperature_in = loex_temperature_sensor(
+        coordinator,
+        entry,
+        "circuit",
+        "flow_temp_in",
+        "Flow Temperature In",
+        UnitOfTemperature.CELSIUS,
+        "mdi:temperature-celsius",
+        SensorDeviceClass.TEMPERATURE,
+    )
+
+    entities.extend([flow_temperature_in])
+
+    flow_temperature_out = loex_temperature_sensor(
+        coordinator,
+        entry,
+        "circuit",
+        "flow_temp_out",
+        "Flow Temperature Out",
+        UnitOfTemperature.CELSIUS,
+        "mdi:temperature-celsius",
+        SensorDeviceClass.TEMPERATURE,
+    )
+
+    entities.extend([flow_temperature_out])
+
     for room_id in coordinator.data:
         if room_id == "external":
+            continue
+
+        if room_id == "control":
             continue
 
         if room_id == "circuit":
@@ -64,6 +94,7 @@ class loex_temperature_sensor(loex_entity, SensorEntity):
         self,
         coordinator: loex_coordinator,
         entry: ConfigEntry,
+        group: str,
         idx: str,
         description: str,
         unit: str,
@@ -72,24 +103,22 @@ class loex_temperature_sensor(loex_entity, SensorEntity):
     ) -> None:
         """Initialize."""
         super().__init__(coordinator, entry)
+        self._group = group
         self._id = idx
         self.description = description
         self.unit = unit
         self._icon = icon
         self._device_class = device_class
-        self.external_temp = None
+        self._temp = None
 
     @property
     def state(self):
         """Return External temperature."""
-        value = self.coordinator.data["external"]["ext_temp"]
-        if (
-            self.external_temp is None
-            or abs(value - self.external_temp) < CONTROL_VALUE
-        ):
-            self.external_temp = value
+        value = self.coordinator.data[self._group][self._id]
+        if self._temp is None or abs(value - self._temp) < CONTROL_VALUE:
+            self._temp = value
 
-        return self.external_temp
+        return self._temp
 
     @property
     def unit_of_measurement(self):

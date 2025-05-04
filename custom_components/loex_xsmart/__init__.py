@@ -11,7 +11,7 @@ from .const import CONF_SYNC_INTERVAL, DEFAULT_SYNC_INTERVAL, DOMAIN
 from .coordinator import loex_coordinator
 from .loex_api import loex_api
 
-PLATFORMS: list[Platform] = [Platform.CLIMATE, Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.CLIMATE, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

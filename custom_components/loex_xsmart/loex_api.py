@@ -111,6 +111,42 @@ class loex_api:
 
         return external_data
 
+    def parse_control_data(self, data: json) -> dict:
+        """Parse external data."""
+        control_data = {}
+
+        try:
+            control_data["pump_1"] = data["t" + str(10031)]
+        except KeyError:
+            control_data["pump_1"] = "N/A"
+
+        try:
+            control_data["pump_2"] = data["t" + str(10032)]
+        except KeyError:
+            control_data["pump_2"] = "N/A"
+
+        try:
+            control_data["pump_acs"] = data["t" + str(10048)]
+        except KeyError:
+            control_data["pump_acs"] = "N/A"
+
+        try:
+            control_data["deumid"] = data["t" + str(10107)]
+        except KeyError:
+            control_data["deumid"] = "N/A"
+
+        try:
+            control_data["heater_command"] = data["t" + str(10039)]
+        except KeyError:
+            control_data["heater_command"] = "N/A"
+
+        try:
+            control_data["heat_pump_command"] = data["t" + str(10040)]
+        except KeyError:
+            control_data["heat_pump_command"] = "N/A"
+
+        return control_data
+
     def parse_circuit_data(self, data: json) -> dict:
         """Parse circuit data."""
         circuit_data = {}
@@ -119,6 +155,18 @@ class loex_api:
             circuit_data["name"] = data["t" + str(20001)]
         except KeyError:
             circuit_data["name"] = "N/A"
+
+        # Flow Temperature in
+        try:
+            circuit_data["flow_temp_in"] = data["t" + str(10001)] / 10
+        except KeyError:
+            circuit_data["flow_temp_in"] = "N/A"
+
+        # Flow Temperature out
+        try:
+            circuit_data["flow_temp_out"] = data["t" + str(10002)] / 10
+        except KeyError:
+            circuit_data["flow_temp_out"] = "N/A"
 
         # Home temperature maybe equivalent to the max of all the rooms
         try:
@@ -256,6 +304,9 @@ class loex_api:
 
         # Parse data related to external
         aggregated_data["external"] = self.parse_external_data(data)
+
+        # Parse control data related
+        aggregated_data["control"] = self.parse_control_data(data)
 
         # Parse data for the circuit
         aggregated_data["circuit"] = self.parse_circuit_data(data)
